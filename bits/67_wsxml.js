@@ -267,12 +267,20 @@ function write_ws_xml_data(ws, opts, idx, wb) {
 	for(R = range.s.r; R <= range.e.r; ++R) {
 		r = [];
 		rr = encode_row(R);
+		var outlineLevel = 0;
+		var hidden = false;
 		for(C = range.s.c; C <= range.e.c; ++C) {
 			ref = cols[C] + rr;
 			if(ws[ref] === undefined) continue;
+			if (ws[ref].outlineLevel) {
+				outlineLevel = ws[ref].outlineLevel
+			}
 			if((cell = write_ws_xml_cell(ws[ref], ref, ws, opts, idx, wb)) != null) r.push(cell);
 		}
-		if(r.length > 0) o[o.length] = (writextag('row', r.join(""), {r:rr}));
+		if (outlineLevel > 0) {
+			hidden = true;
+		}
+		if(r.length > 0) o[o.length] = (writextag('row', r.join(""), {r:rr,outlineLevel:outlineLevel,hidden:hidden}));
 	}
 	return o.join("");
 }
