@@ -7412,7 +7412,7 @@ function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
 	switch(cell.t) {
 		case 'f':
 			var f = writetag('f', escapexml(cell.f ))
-			v = v + f;
+			v = f + v;
 			break;
 		case 'n': break;
 		case 'd': o.t = "d"; break;
@@ -7534,19 +7534,35 @@ function write_ws_xml_data(ws, opts, idx, wb) {
 		r = [];
 		rr = encode_row(R);
 		var outlineLevel = 0;
-		var hidden = false;
+		var hidden = 0;
+		var collapsed = 0;
 		for(C = range.s.c; C <= range.e.c; ++C) {
 			ref = cols[C] + rr;
 			if(ws[ref] === undefined) continue;
 			if (ws[ref].outlineLevel) {
 				outlineLevel = ws[ref].outlineLevel
 			}
+			if (ws[ref].collapsed) {
+				collapsed = ws[ref].collapsed
+			}
 			if((cell = write_ws_xml_cell(ws[ref], ref, ws, opts, idx, wb)) != null) r.push(cell);
 		}
 		if (outlineLevel > 0) {
-			hidden = true;
+			hidden = 1;
 		}
-		if(r.length > 0) o[o.length] = (writextag('row', r.join(""), {r:rr,outlineLevel:outlineLevel,hidden:hidden}));
+		var toWrite = {
+			r:rr
+		}
+		if (outlineLevel) {
+			toWrite.outlineLevel = outlineLevel
+		}
+		if (hidden) {
+			toWrite.hidden = hidden
+		}
+		if (collapsed) {
+			toWrite.collapsed = collapsed
+		}
+		if(r.length > 0) o[o.length] = (writextag('row', r.join(""),toWrite));
 	}
 	return o.join("");
 }
@@ -7565,6 +7581,7 @@ function write_ws_xml(idx, opts, wb) {
 	o[o.length] = (writextag('dimension', null, {'ref': ref}));
 
 	if(ws['!cols'] !== undefined && ws['!cols'].length > 0) o[o.length] = (write_ws_xml_cols(ws, ws['!cols']));
+	o[o.length] = '<sheetPr enableFormatConditionsCalculation="0"><outlinePr summaryBelow="0"/></sheetPr>';
 	o[sidx = o.length] = '<sheetData/>';
 	if(ws['!ref'] !== undefined) {
 		rdata = write_ws_xml_data(ws, opts, idx, wb);
