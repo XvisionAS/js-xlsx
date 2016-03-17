@@ -148,6 +148,10 @@ function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
 	var os = get_cell_style(opts.cellXfs, cell, opts);
 	if(os !== 0) o.s = os;
 	switch(cell.t) {
+		case 'f':
+			var f = writetag('f', escapexml(cell.f ))
+			v = v + f;
+			break;
 		case 'n': break;
 		case 'd': o.t = "d"; break;
 		case 'b': o.t = "b"; break;
